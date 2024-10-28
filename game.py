@@ -1,84 +1,84 @@
 from Minefield import Minefield
+import random,re
 
-def check_opened_cells(row,col,displayed_field):
-        have_except=check_exceptions(row,col,displayed_field)
-        if have_except:
-             return False
-             
-        if displayed_field[row][col][0]!='*':
-             print("The cell is already opened.")
-             return False
+def check_user_input(x,lim:int)->bool:
+        non_digit=re.search(r'\D',x)
+        if non_digit:
+            print("you have to enter numbers")
+            return False
+        x=int(x)     
+        if not (0<=x<=lim or -1>=x>=-lim-1):
+            print("the row is out of range of the field.")
+            return False
+
+            
+    
         return True
-
-def check_flagged_cells(row,col,displayed_field):
-     have_except=check_exceptions(row,col,displayed_field)
-     if have_except:
-        return False
-     not_opened=check_opened_cells(row,col,displayed_field)
-     if not not_opened:
-        return False
+def prompt_input_cell(rows:int,cols:int)->tuple:
+    cell=[None,None]
+    index=0
+    lim=rows-1
+    for coordinate in ("row","column"):
+        while True:
            
-     if displayed_field[row][col][1]=='F':
-             print("The cell is already flagged.")
-             return False
-     return True
+           print("enter the coordinate of the cell.",coordinate,":")
+           user_input=input("type an integer.")
+           valid=check_user_input(user_input,lim)
+           if valid:
+               user_input=int(user_input)
+               cell[index]=user_input
+               index+=1
+               break
+        lim=cols-1
+        
+    return cell
 
-def check_exceptions(row,col,displayed_field):
-    try:
-        displayed_field[row][col]
-    except IndexError:
-         print("The cell doesn't exist.")
-         return True
-    except TypeError:
-         print("The row and col must be int.")
-         return True
-    else:
-         return False
-
-          
-          
-      
-def input_cell_to_be_opened():
-    print("Please enter a cell to open.")
-    row=int(input("Cell row: "))
-    col=int(input("Cell column: "))
-    valid=check_opened_cells(row,col,minefield.displayed_field)
-    while not valid:
-        print("Please enter a cell to open.")
-        row=int(input("Cell row: "))
-        col=int(input("Cell column: "))
-        valid=check_opened_cells(row,col,minefield.displayed_field)
-    return row,col
-
-def input_cell_to_be_flagged():
-    print("Please enter a cell to flag")
-    row=int(input("Cell row: "))
-    col=int(input("Cell column: "))
-    valid=check_flagged_cells(row,col,minefield.displayed_field)
-    while not valid:
-        print("Please enter a cell to flag")
-        row=int(input("Cell row: "))
-        col=int(input("Cell column: "))
-        valid=check_flagged_cells(row,col,minefield.displayed_field)
-    return row,col
+   
 
 
-print("Welcome to Minesweeper.")
-minefield=Minefield((4,5),7)
-end=False
-while not end:
-    row,col=input_cell_to_be_opened()
-    f_row,f_col=input_cell_to_be_flagged()
-    end=minefield.check_endgame(row,col)
-    if not end:
-         minefield.display_field()
-
-minefield.display_all_cells()
-
-
+if __name__=="__main__":
+   print("Welcome to Minesweeper. Please enter the number of rows and columns for the minefield.")
+   rows=int(input("enter the number of rows."))
+   cols=int(input("enter the number of columns."))
+   #set the number of mines as one-third of total cells.
+   cell_total=rows*cols
+   mine_total=cell_total//5
+   minefield=Minefield(rows,cols,mine_total,cell_total)
+   while not minefield.end:
+       print(minefield)
+       actions={"F":"flag","f":"flag","O":"open","o":"open"}
+       #prompt user action
+       while True:
+           action=input("enter your action. \"F\" for flag,\"O\" for open")
+           if action not in actions:
+               print("you enter a wrong action.") 
+           else:
+               print("Are you sure you want to ",actions[action],"the cell?")
+               confirmed=input("enter \"Y\" or \"N\".")
+               if confirmed=="N" or confirmed=="n":
+                   continue
+               else:
+                   break
+       
+       #prompt user to choose a cell and validate input.
+       cell=prompt_input_cell(rows,cols)
+       
+       if actions[action]=="flag":
+           if minefield.field[cell[0]][cell[1]][2]=="F":
+               print("This cell has already been flagged.")
+           else:
+             minefield.field=minefield.flag(cell,minefield.field)
+           continue
+       else:
+           if minefield.field[cell[0]][cell[1]][1]=="O":
+               print("This cell has already been opened.")
+               continue
+           minefield.field=minefield.open(cell,minefield.field)
     
-    
-    
+       minefield.end=minefield.check_endgame(minefield.field,cell)
+       if minefield.end:
+           print(minefield)
+       
 
 
 
